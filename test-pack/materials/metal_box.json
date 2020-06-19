@@ -1,0 +1,14 @@
+{
+  "TexturePack": {
+
+  },
+  "VertexLitGeneric": {
+    "$basetexture": "models/props/metal_box",
+    "$bumpmap": "models/props/metal_box_normal",
+    "$phongexponenttexture": "models/props/metal_box_exponent",
+    "$phong": "1",
+    "$phongboost": "3",
+    "$phongfresnelranges": "[5 1 2]",
+    "$selfillum": "1"
+  }
+}
