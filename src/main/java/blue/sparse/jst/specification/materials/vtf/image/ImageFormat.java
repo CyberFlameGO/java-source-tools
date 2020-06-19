@@ -12,6 +12,14 @@ public abstract class ImageFormat {
 	public abstract BufferedImage read(int width, int height, RandomAccessReadableData data);
 	public void write(BufferedImage image, RandomAccessWritableData data) {}
 
+	public static short encodeRGB565Closest(Vector3f v) {
+		int result = 0;
+		result = Bits.withBits32(result, 11, 5, Math.round(v.x * ((1 << 5) - 1)));
+		result = Bits.withBits32(result, 5, 6, Math.round(v.y * ((1 << 6) - 1)));
+		result = Bits.withBits32(result, 0, 5, Math.round(v.z * ((1 << 5) - 1)));
+		return (short) result;
+	}
+
 	public static Vector3f decodeRGB565(int i) {
 		var red = Bits.getBits32(i, 11, 5) / ((float) (1 << 5) - 1);
 		var green = Bits.getBits32(i, 5, 6) / ((float) (1 << 6) - 1);
@@ -24,6 +32,14 @@ public abstract class ImageFormat {
 		result = Bits.withBits32(result, 11, 5, (int) (v.x * ((1 << 5) - 1)));
 		result = Bits.withBits32(result, 5, 6, (int) (v.y * ((1 << 6) - 1)));
 		result = Bits.withBits32(result, 0, 5, (int) (v.z * ((1 << 5) - 1)));
+		return (short) result;
+	}
+
+	public static short encodeRGB565(int r, int g, int b) {
+		int result = 0;
+		result = Bits.withBits32(result, 11, 5, r);
+		result = Bits.withBits32(result, 5, 6, g);
+		result = Bits.withBits32(result, 0, 5, b);
 		return (short) result;
 	}
 

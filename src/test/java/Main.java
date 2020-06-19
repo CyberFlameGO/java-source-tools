@@ -13,6 +13,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
@@ -22,25 +24,27 @@ import static org.lwjgl.opengl.GL42C.glTexStorage2D;
 
 public final class Main {
 	public static void main(String[] args) throws IOException {
-		File file = new File("source-test/triangles-1.vtf");
-		RandomAccessReadableData data = Data.readFile(file);
-
-		VTFInstance instance = VTFSpecification.INSTANCE.read(data);
-		System.out.println();
-		BufferedImage image = instance.getImage(0, 0);
-
-		ImageIO.write(image, "PNG", new File("output.png"));
-
-
-//		BufferedImage image = ImageIO.read(new File("source-test/triangles.png"));
-//		ImageFormat format = VTFImageDataFormat.DXT5.getFormat();
+//		File file = new File("source-test/triangles-1.vtf");
+//		RandomAccessReadableData data = Data.readFile(file);
 //
-//		File file = new File("source-test/temp.bin");
-//		RandomAccessReadableWritableData data = Data.readWriteFile(file);
-//		format.write(image, data);
-//		data.position(0);
-//		BufferedImage out = format.read(image.getWidth(), image.getHeight(), data);
-//		ImageIO.write(out, "PNG", new File("source-test/out.png"));
+//		VTFInstance instance = VTFSpecification.INSTANCE.read(data);
+//		System.out.println();
+//		BufferedImage image = instance.getImage(0, 0);
+//
+//		ImageIO.write(image, "PNG", new File("output.png"));
+		/////////////////////////////////////////////////////////////
+
+		BufferedImage image = ImageIO.read(new File("source-test/dxt-death.png"));
+		ImageFormat format = VTFImageDataFormat.DXT1.getFormat();
+
+		File file = new File("source-test/temp.bin");
+		RandomAccessReadableWritableData data = Data.readWriteFile(file);
+		format.write(image, data);
+		data.position(0);
+		BufferedImage out = format.read(image.getWidth(), image.getHeight(), data);
+		ImageIO.write(out, "PNG", new File("source-test/out.png"));
+
+		/////////////////////////////////////////////////////////////
 
 //		glfwInit();
 //		glfwDefaultWindowHints();
@@ -62,6 +66,18 @@ public final class Main {
 //		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 //		BufferedImage bufferedImage = createBufferedImage(image.getWidth(), image.getHeight(), buffer);
 //		ImageIO.write(bufferedImage, "PNG", new File("opengl-out.png"));
+
+		////////////////////////////////////////////////////////////////////
+
+//		BufferedImage image = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB);
+//		for (int x = 0; x < image.getWidth(); x++) {
+//			for (int y = 0; y < image.getHeight(); y++) {
+//				Random random = new Random((x + y) / 4);
+//				image.setRGB(x, y, random.nextInt(0xFFFFFF));
+//			}
+//		}
+//
+//		ImageIO.write(image, "PNG", new File("source-test/dxt-death.png"));
 	}
 
 	public static ByteBuffer createRGBABuffer(BufferedImage image) {
