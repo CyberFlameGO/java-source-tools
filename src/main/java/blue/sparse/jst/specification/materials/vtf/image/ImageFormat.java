@@ -1,16 +1,33 @@
 package blue.sparse.jst.specification.materials.vtf.image;
 
 import org.joml.Vector3f;
-import xyz.eutaxy.util.data.RandomAccessReadableData;
-import xyz.eutaxy.util.data.RandomAccessWritableData;
+import xyz.eutaxy.util.data.*;
 import xyz.eutaxy.util.memory.Bits;
 
 import java.awt.image.BufferedImage;
 
 public abstract class ImageFormat {
+
+	private static float[] red565Decoded = new float[1 << 16];
+	private static float[] green565Decoded = new float[1 << 16];
+	private static float[] blue565Decoded = new float[1 << 16];
+
+	static {
+		int v = 1 << 16;
+		for (int i = 0; i < v; i++) {
+			var red = Bits.getBits32(i, 11, 5) / ((float) (1 << 5) - 1);
+			var green = Bits.getBits32(i, 5, 6) / ((float) (1 << 6) - 1);
+			var blue = Bits.getBits32(i, 0, 5) / ((float) (1 << 5) - 1);
+
+			red565Decoded[i] = red;
+			green565Decoded[i] = green;
+			blue565Decoded[i] = blue;
+		}
+	}
+
 	//Assuming that the buffer position is exactly where the image format data starts.
 	public abstract BufferedImage read(int width, int height, RandomAccessReadableData data);
-	public void write(BufferedImage image, RandomAccessWritableData data) {}
+	public void write(BufferedImage image, WritableData data) {}
 
 	public static short encodeRGB565Closest(Vector3f v) {
 		int result = 0;
@@ -21,6 +38,7 @@ public abstract class ImageFormat {
 	}
 
 	public static Vector3f decodeRGB565(int i) {
+//		return new Vector3f(red565Decoded[i], green565Decoded[i], blue565Decoded[i]);
 		var red = Bits.getBits32(i, 11, 5) / ((float) (1 << 5) - 1);
 		var green = Bits.getBits32(i, 5, 6) / ((float) (1 << 6) - 1);
 		var blue = Bits.getBits32(i, 0, 5) / ((float) (1 << 5) - 1);

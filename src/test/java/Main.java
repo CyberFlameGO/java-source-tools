@@ -4,14 +4,11 @@ import blue.sparse.jst.specification.materials.vtf.impl.VTFInstance;
 import blue.sparse.jst.specification.materials.vtf.impl.VTFSpecification;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
-import xyz.eutaxy.util.data.Data;
-import xyz.eutaxy.util.data.RandomAccessReadableData;
-import xyz.eutaxy.util.data.RandomAccessReadableWritableData;
+import xyz.eutaxy.util.data.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -34,14 +31,13 @@ public final class Main {
 //		ImageIO.write(image, "PNG", new File("output.png"));
 		/////////////////////////////////////////////////////////////
 
-		BufferedImage image = ImageIO.read(new File("source-test/dxt-death.png"));
+		BufferedImage image = ImageIO.read(new File("source-test/dxt-death-waves.png"));
 		ImageFormat format = VTFImageDataFormat.DXT1.getFormat();
 
-		File file = new File("source-test/temp.bin");
-		RandomAccessReadableWritableData data = Data.readWriteFile(file);
-		format.write(image, data);
-		data.position(0);
-		BufferedImage out = format.read(image.getWidth(), image.getHeight(), data);
+		var dxtOut = new ByteArrayOutputStream();
+		format.write(image, Data.writeOutputStream(dxtOut));
+		var dxtIn = Data.wrapByteArray(dxtOut.toByteArray());
+		BufferedImage out = format.read(image.getWidth(), image.getHeight(), dxtIn);
 		ImageIO.write(out, "PNG", new File("source-test/out.png"));
 
 		/////////////////////////////////////////////////////////////
@@ -69,15 +65,23 @@ public final class Main {
 
 		////////////////////////////////////////////////////////////////////
 
+//		int[] colors = new int[8];
+//		for (int i = 0; i < colors.length; i++) {
+//			colors[i] = ThreadLocalRandom.current().nextInt(0xFFFFFF);
+//		}
+//
 //		BufferedImage image = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB);
 //		for (int x = 0; x < image.getWidth(); x++) {
 //			for (int y = 0; y < image.getHeight(); y++) {
-//				Random random = new Random((x + y) / 4);
-//				image.setRGB(x, y, random.nextInt(0xFFFFFF));
+//				double divX = (Math.sin(x * 0.01) * 0.5 + 0.5) * 6 + 3;
+//				double divY = (Math.cos(y * 0.02) * 0.5 + 0.5) * 6 + 3;
+//				int pos = (int) (x / divX) + (int) (y / divY);
+//				int color = colors[pos % colors.length];
+//				image.setRGB(x, y, color);
 //			}
 //		}
 //
-//		ImageIO.write(image, "PNG", new File("source-test/dxt-death.png"));
+//		ImageIO.write(image, "PNG", new File("source-test/dxt-death-checker.png"));
 	}
 
 	public static ByteBuffer createRGBABuffer(BufferedImage image) {

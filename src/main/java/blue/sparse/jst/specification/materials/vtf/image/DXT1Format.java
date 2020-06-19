@@ -7,6 +7,7 @@ import xyz.eutaxy.util.memory.Bits;
 import java.awt.image.BufferedImage;
 import java.nio.ByteOrder;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class DXT1Format extends ImageFormat {
 
@@ -95,7 +96,7 @@ public class DXT1Format extends ImageFormat {
 	}
 
 	@Override
-	public void write(BufferedImage image, RandomAccessWritableData data) {
+	public void write(BufferedImage image, WritableData data) {
 		var originalOrder = data.byteOrder();
 		data.byteOrder(ByteOrder.LITTLE_ENDIAN);
 
@@ -113,46 +114,76 @@ public class DXT1Format extends ImageFormat {
 			heightInBlocks++;
 		}
 
-		for (int blockY = 0; blockY < heightInBlocks; blockY++) {
-			System.out.println("blockY = " + blockY);
-			for (int blockX = 0; blockX < widthInBlocks; blockX++) {
+		List<Block> blocks = new ArrayList<>();
+		var pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		var totalBlockCount = heightInBlocks * widthInBlocks;
+		CountDownLatch latch = new CountDownLatch(totalBlockCount);
 
-				Vector3f minColor = new Vector3f(1);
-				Vector3f maxColor = new Vector3f(0);
-				findBestColors(image, width, height, blockY, blockX, minColor, maxColor);
+		for (short blockY = 0; blockY < heightInBlocks; blockY++) {
+			for (short blockX = 0; blockX < widthInBlocks; blockX++) {
+				var block = new Block(image, blockX, blockY);
+				blocks.add(block);
 
-				var color0 = minColor;
-				var color1 = maxColor;
-
-				Vector3f[] array = interpolateColors(color0, color1);
-				data.writeShort(encodeRGB565(color0));
-				data.writeShort(encodeRGB565(color1));
-
-				int codes = 0;
-				for (int y = 0; y <= 3; y++) {
-					for (int x = 0; x <= 3; x++) {
-
-						var imageX = x + blockX * 4;
-						var imageY = y + blockY * 4;
-
-						if (imageX >= width || imageY >= height) {
-							continue;
-						}
-
-						var index = x + y * 4;
-						var color = decodeRGB888(image.getRGB(imageX, imageY));
-						int code = getColorCode(array, color);
-
-						codes = Bits.withBits32(codes, index * 2, 2, code);
-					}
-
-				}
-
-				data.writeInt(codes);
+				pool.submit(() -> {
+					findBestColors(block);
+					populateBlockCodes(block);
+					latch.countDown();
+				});
 			}
 		}
 
+		try {
+			long startTime = System.currentTimeMillis();
+			while (!latch.await(500, TimeUnit.MILLISECONDS)) {
+				var remaining = latch.getCount();
+				var completed = totalBlockCount - remaining;
+				double progress = completed / (double) totalBlockCount;
+				System.out.printf("DXT1 encoding: (%,d/%,d) %.1f%%%n", completed, totalBlockCount, progress * 100.0);
+			}
+			long diffTime = System.currentTimeMillis() - startTime;
+			System.out.println("DXT1 encoding finished after "+diffTime+"ms");
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		System.out.println("Writing blocks to output...");
+		long writeStart = System.currentTimeMillis();
+		for (Block block : blocks) {
+			data.writeShort(block.color0);
+			data.writeShort(block.color1);
+			data.writeInt(block.codes);
+		}
+		long writeDiff = System.currentTimeMillis() - writeStart;
+		System.out.println("Done writing blocks after "+writeDiff+"ms");
+
+		pool.shutdownNow();
+
 		data.byteOrder(originalOrder);
+	}
+
+	private void populateBlockCodes(Block block) {
+		var color0 = decodeRGB565(block.color0);
+		var color1 = decodeRGB565(block.color1);
+		Vector3f[] array = interpolateColors(color0, color1);
+
+		for (int y = 0; y <= 3; y++) {
+			for (int x = 0; x <= 3; x++) {
+
+				var imageX = x + block.blockX * 4;
+				var imageY = y + block.blockY * 4;
+
+				if (imageX >= block.fullImage.getWidth() || imageY >= block.fullImage.getHeight()) {
+					continue;
+				}
+
+				var index = x + y * 4;
+				var color = decodeRGB888(block.fullImage.getRGB(imageX, imageY));
+				int code = getColorCode(array, color);
+
+				block.codes = Bits.withBits32(block.codes, index * 2, 2, code);
+			}
+
+		}
 	}
 
 	private int getColorCode(Vector3f[] interpolated, Vector3f color) {
@@ -201,27 +232,19 @@ public class DXT1Format extends ImageFormat {
 		return array;
 	}
 
-	private void findBestColors(
-			BufferedImage image,
-			int width,
-			int height,
-			int blockY,
-			int blockX,
-			Vector3f outColor0,
-			Vector3f outColor1
-	) {
+	private void findBestColors(Block block) {
 		List<Vector3f> actualPixelColors = new ArrayList<>();
 
 		for (int y = 0; y <= 3; y++) {
 			for (int x = 0; x <= 3; x++) {
-				var imageX = x + blockX * 4;
-				var imageY = y + blockY * 4;
+				var imageX = x + block.blockX * 4;
+				var imageY = y + block.blockY * 4;
 
-				if (imageX >= width || imageY >= height) {
+				if (imageX >= block.fullImage.getWidth() || imageY >= block.fullImage.getHeight()) {
 					continue;
 				}
 
-				actualPixelColors.add(decodeRGB888(image.getRGB(imageX, imageY)));
+				actualPixelColors.add(decodeRGB888(block.fullImage.getRGB(imageX, imageY)));
 			}
 		}
 
@@ -264,8 +287,10 @@ public class DXT1Format extends ImageFormat {
 				float distance = sumDistances(actualPixelColors, colors);
 				if (distance < bestDistance) {
 					bestDistance = distance;
-					outColor0.set(color0);
-					outColor1.set(color1);
+					block.color0 = encodeRGB565(color0);
+					block.color1 = encodeRGB565(color1);
+//					outColor0.set(color0);
+//					outColor1.set(color1);
 				}
 			}
 		}
@@ -278,5 +303,23 @@ public class DXT1Format extends ImageFormat {
 		}
 
 		return result;
+	}
+
+	private class Block {
+
+		BufferedImage fullImage;
+
+		short blockX;
+		short blockY;
+
+		short color0;
+		short color1;
+		int codes;
+
+		public Block(BufferedImage fullImage, short blockX, short blockY) {
+			this.fullImage = fullImage;
+			this.blockX = blockX;
+			this.blockY = blockY;
+		}
 	}
 }

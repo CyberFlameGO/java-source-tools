@@ -1,8 +1,7 @@
 package blue.sparse.jst.specification.materials.vtf.image;
 
 import org.joml.Vector3f;
-import xyz.eutaxy.util.data.RandomAccessReadableData;
-import xyz.eutaxy.util.data.RandomAccessWritableData;
+import xyz.eutaxy.util.data.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -161,7 +160,7 @@ public class DXT5Format extends ImageFormat {
 	}
 
 	@Override
-	public void write(BufferedImage image, RandomAccessWritableData data) {
+	public void write(BufferedImage image, WritableData data) {
 		var originalOrder = data.byteOrder();
 		data.byteOrder(ByteOrder.LITTLE_ENDIAN);
 
