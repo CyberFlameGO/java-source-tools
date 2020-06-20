@@ -32,7 +32,7 @@ public final class Main {
 //		ImageIO.write(image, "PNG", new File("out.png"));
 		/////////////////////////////////////////////////////////////
 
-		BufferedImage image = ImageIO.read(new File("source-test/v_portalgun.png"));
+		BufferedImage image = ImageIO.read(new File("source-test/avast.png"));
 		ImageFormat format = VTFImageDataFormat.DXT1.getFormat();
 
 		var dxtOut = new ByteArrayOutputStream();
