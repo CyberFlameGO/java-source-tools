@@ -11,6 +11,15 @@ import java.util.concurrent.*;
 
 public class DXT1Format extends ImageFormat {
 
+//	private static final Set<Vector3f> DEFAULT_COLORS = new HashSet<>();
+
+	static {
+//		for (int i = 0; i < 32; i++) {
+//			DEFAULT_COLORS.add(decodeRGB565(encodeRGB565(i, i, i)));
+//			DEFAULT_COLORS.add(decodeRGB565(encodeRGB565(i, i * 2 + 1, i)));
+//		}
+	}
+
 	@Override
 	public BufferedImage read(int width, int height, RandomAccessReadableData data) {
 		var originalOrder = data.byteOrder();
@@ -37,40 +46,7 @@ public class DXT1Format extends ImageFormat {
 				var color1 = decodeRGB565(color1int);
 				var codes = data.readInt();
 
-				var array = new Vector3f[4];
-				for (int i = 0; i < array.length; i++) {
-					if (color0int > color1int) {
-						switch (i) {
-							case 0:
-								array[i] = color0;
-								break;
-							case 1:
-								array[i] = color1;
-								break;
-							case 2:
-								array[i] = new Vector3f(color0).mul(2f).add(color1).div(3f);
-								break;
-							case 3:
-								array[i] = new Vector3f(color0).add(new Vector3f(color1).mul(2f)).div(3f);
-								break;
-						}
-					} else {
-						switch (i) {
-							case 0:
-								array[i] = color0;
-								break;
-							case 1:
-								array[i] = color1;
-								break;
-							case 2:
-								array[i] = new Vector3f(color0).add(color1).div(2f);
-								break;
-							case 3:
-								array[i] = new Vector3f(0f);
-								break;
-						}
-					}
-				}
+				var array = interpolateColors(color0, color1);
 
 				for (int y = 0; y <= 3; y++) {
 					for (int x = 0; x <= 3; x++) {
@@ -141,20 +117,24 @@ public class DXT1Format extends ImageFormat {
 				System.out.printf("DXT1 encoding: (%,d/%,d) %.1f%%%n", completed, totalBlockCount, progress * 100.0);
 			}
 			long diffTime = System.currentTimeMillis() - startTime;
-			System.out.println("DXT1 encoding finished after "+diffTime+"ms");
+			System.out.println("DXT1 encoding finished after " + diffTime + "ms");
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
 		System.out.println("Writing blocks to output...");
 		long writeStart = System.currentTimeMillis();
+		float totalDistance = 0f;
 		for (Block block : blocks) {
 			data.writeShort(block.color0);
 			data.writeShort(block.color1);
 			data.writeInt(block.codes);
+
+			totalDistance += block.distance;
 		}
+		System.out.println("Total block distance: " + totalDistance);
 		long writeDiff = System.currentTimeMillis() - writeStart;
-		System.out.println("Done writing blocks after "+writeDiff+"ms");
+		System.out.println("Done writing blocks after " + writeDiff + "ms");
 
 		pool.shutdownNow();
 
@@ -248,6 +228,7 @@ public class DXT1Format extends ImageFormat {
 			}
 		}
 
+
 		Set<Vector3f> testColors = new HashSet<>();
 		for (Vector3f actualPixelColor : actualPixelColors) {
 			testColors.add(decodeRGB565(encodeRGB565(actualPixelColor)));
@@ -261,14 +242,16 @@ public class DXT1Format extends ImageFormat {
 
 			int min = -1;
 			int max = 1;
-			for (int r = min; r <= max; r++) {
-				for (int g = min; g <= max; g++) {
-					for (int b = min; b <= max; b++) {
-						testColors.add(decodeRGB565(encodeRGB565(
-								Math.max(Math.min(cr + r, 5), 0),
-								Math.max(Math.min(cg + g, 6), 0),
-								Math.max(Math.min(cb + b, 5), 0)
-						)));
+			var minR = Math.max(cr + min, 0);
+			var minG = Math.max(cg + min, 0);
+			var minB = Math.max(cb + min, 0);
+			var maxR = Math.min(cr + max, (1 << 5) - 1);
+			var maxG = Math.min(cg + max, (1 << 6) - 1);
+			var maxB = Math.min(cb + max, (1 << 5) - 1);
+			for (int r = minR; r <= maxR; r++) {
+				for (int g = minG; g <= maxG; g++) {
+					for (int b = minB; b <= maxB; b++) {
+						testColors.add(decodeRGB565(encodeRGB565(r, g, b)));
 					}
 				}
 			}
@@ -276,6 +259,8 @@ public class DXT1Format extends ImageFormat {
 
 		float bestDistance = Float.MAX_VALUE;
 
+		Vector3f resultColor0 = new Vector3f();
+		Vector3f resultColor1 = new Vector3f();
 		for (Vector3f color0 : testColors) {
 			for (Vector3f color1 : testColors) {
 				Vector3f[] pInterpolated = interpolateColors(color0, color1);
@@ -287,25 +272,59 @@ public class DXT1Format extends ImageFormat {
 				float distance = sumDistances(actualPixelColors, colors);
 				if (distance < bestDistance) {
 					bestDistance = distance;
-					block.color0 = encodeRGB565(color0);
-					block.color1 = encodeRGB565(color1);
-//					outColor0.set(color0);
-//					outColor1.set(color1);
+					resultColor0 = color0;
+					resultColor1 = color1;
 				}
 			}
 		}
+
+		block.distance = bestDistance;
+		block.color0 = encodeRGB565(resultColor0);
+		block.color1 = encodeRGB565(resultColor1);
+	}
+
+	private long sumDistances(short[] a, short[] b) {
+		return 0;
+	}
+
+	private short distance(short a, short b) {
+		int ra = a >> 11 & (1 << 5) - 1;
+		int ga = a >> 5 & (1 << 6) - 1;
+		int ba = a & (1 << 5) - 1;
+
+		int rb = a >> 11 & (1 << 5) - 1;
+		int gb = a >> 5 & (1 << 6) - 1;
+		int bb = a & (1 << 5) - 1;
+
+		int dr = ra - rb;
+		int dg = ga - gb;
+		int db = ba - bb;
+
+		return (short) (dr * dr + dg * dg + db * db);
 	}
 
 	private float sumDistances(List<Vector3f> a, List<Vector3f> b) {
 		float result = 0f;
 		for (int i = 0; i < b.size(); i++) {
-			result += a.get(i).distanceSquared(b.get(i));
+//			Vector3f va = a.get(i);
+//			Vector3f vb = b.get(i);
+//
+//			float dr = va.x * 255f - vb.x * 255f;
+//			float dg = va.y * 255f - vb.y * 255f;
+//			float db = va.z * 255f - vb.z * 255f;
+//
+//			float ar = (va.x * 255f + vb.x * 255f) / 2f;
+//			float dc = (float) Math.sqrt((2 + ar / 256f) * (dr * dr) + 4 * dg * dg + (2 + (255f - ar) / 256f) * db * db);
+//
+//			result += dc;
+
+			result += a.get(i).distance(b.get(i));
 		}
 
 		return result;
 	}
 
-	private class Block {
+	private static class Block {
 
 		BufferedImage fullImage;
 
@@ -315,6 +334,8 @@ public class DXT1Format extends ImageFormat {
 		short color0;
 		short color1;
 		int codes;
+
+		float distance;
 
 		public Block(BufferedImage fullImage, short blockX, short blockY) {
 			this.fullImage = fullImage;

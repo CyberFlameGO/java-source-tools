@@ -30,14 +30,21 @@ public abstract class ImageFormat {
 	public void write(BufferedImage image, WritableData data) {}
 
 	public static short encodeRGB565Closest(Vector3f v) {
+		//rrr = Total block distance:  93960.73
+		//rcr = Total block distance:  99642.12
+		//rfr = Total block distance: 124152.58
+		//frf = Total block distance: 164219.69
+		//fff = Total block distance: 185261.3
+
 		int result = 0;
-		result = Bits.withBits32(result, 11, 5, Math.round(v.x * ((1 << 5) - 1)));
-		result = Bits.withBits32(result, 5, 6, Math.round(v.y * ((1 << 6) - 1)));
-		result = Bits.withBits32(result, 0, 5, Math.round(v.z * ((1 << 5) - 1)));
+		result = Bits.withBits32(result, 11, 5, (int) Math.round(v.x * ((1 << 5) - 1)));
+		result = Bits.withBits32(result, 5, 6, (int) Math.round(v.y * ((1 << 6) - 1)));
+		result = Bits.withBits32(result, 0, 5, (int) Math.round(v.z * ((1 << 5) - 1)));
 		return (short) result;
 	}
 
 	public static Vector3f decodeRGB565(int i) {
+//		i = i & 0xFFFF;
 //		return new Vector3f(red565Decoded[i], green565Decoded[i], blue565Decoded[i]);
 		var red = Bits.getBits32(i, 11, 5) / ((float) (1 << 5) - 1);
 		var green = Bits.getBits32(i, 5, 6) / ((float) (1 << 6) - 1);
@@ -46,11 +53,12 @@ public abstract class ImageFormat {
 	}
 
 	public static short encodeRGB565(Vector3f v) {
-		int result = 0;
-		result = Bits.withBits32(result, 11, 5, (int) (v.x * ((1 << 5) - 1)));
-		result = Bits.withBits32(result, 5, 6, (int) (v.y * ((1 << 6) - 1)));
-		result = Bits.withBits32(result, 0, 5, (int) (v.z * ((1 << 5) - 1)));
-		return (short) result;
+		return encodeRGB565Closest(v);
+//		int result = 0;
+//		result = Bits.withBits32(result, 11, 5, (int) (v.x * ((1 << 5) - 1)));
+//		result = Bits.withBits32(result, 5, 6, (int) (v.y * ((1 << 6) - 1)));
+//		result = Bits.withBits32(result, 0, 5, (int) (v.z * ((1 << 5) - 1)));
+//		return (short) result;
 	}
 
 	public static short encodeRGB565(int r, int g, int b) {

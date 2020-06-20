@@ -1,10 +1,11 @@
 import blue.sparse.jst.specification.materials.vtf.VTFImageDataFormat;
-import blue.sparse.jst.specification.materials.vtf.image.ImageFormat;
+import blue.sparse.jst.specification.materials.vtf.image.*;
 import blue.sparse.jst.specification.materials.vtf.impl.VTFInstance;
 import blue.sparse.jst.specification.materials.vtf.impl.VTFSpecification;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11C;
 import xyz.eutaxy.util.data.*;
+import xyz.eutaxy.util.memory.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -21,22 +22,24 @@ import static org.lwjgl.opengl.GL42C.glTexStorage2D;
 
 public final class Main {
 	public static void main(String[] args) throws IOException {
-//		File file = new File("source-test/triangles-1.vtf");
+//		File file = new File("source-test/v_portalgun.vtf");
 //		RandomAccessReadableData data = Data.readFile(file);
 //
 //		VTFInstance instance = VTFSpecification.INSTANCE.read(data);
 //		System.out.println();
 //		BufferedImage image = instance.getImage(0, 0);
 //
-//		ImageIO.write(image, "PNG", new File("output.png"));
+//		ImageIO.write(image, "PNG", new File("out.png"));
 		/////////////////////////////////////////////////////////////
 
-		BufferedImage image = ImageIO.read(new File("source-test/dxt-death-waves.png"));
+		BufferedImage image = ImageIO.read(new File("source-test/v_portalgun.png"));
 		ImageFormat format = VTFImageDataFormat.DXT1.getFormat();
 
 		var dxtOut = new ByteArrayOutputStream();
 		format.write(image, Data.writeOutputStream(dxtOut));
-		var dxtIn = Data.wrapByteArray(dxtOut.toByteArray());
+		var bytes = dxtOut.toByteArray();
+		System.out.println(MemoryFormatUnit.BYTE_DECIMAL.formatBytes(bytes.length));
+		var dxtIn = Data.wrapByteArray(bytes);
 		BufferedImage out = format.read(image.getWidth(), image.getHeight(), dxtIn);
 		ImageIO.write(out, "PNG", new File("source-test/out.png"));
 
