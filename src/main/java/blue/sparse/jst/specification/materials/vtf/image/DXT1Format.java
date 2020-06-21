@@ -1,6 +1,6 @@
 package blue.sparse.jst.specification.materials.vtf.image;
 
-import org.joml.Vector3f;
+import org.joml.*;
 import xyz.eutaxy.util.data.*;
 import xyz.eutaxy.util.memory.Bits;
 
@@ -11,13 +11,26 @@ import java.util.concurrent.*;
 
 public class DXT1Format extends ImageFormat {
 
-//	private static final Set<Vector3f> DEFAULT_COLORS = new HashSet<>();
+	private static final List<Vector3i> TEST_COLOR_OFFSETS = new ArrayList<>();
+	private static final int MAX_BITS_5 = (1 << 5) - 1;
+	private static final int MAX_BITS_6 = (1 << 6) - 1;
+	private static final Vector3i INT_MAX_565 = new Vector3i(MAX_BITS_5, MAX_BITS_6, MAX_BITS_5);
+	private static final Vector3f FLOAT_MAX_565 = new Vector3f(INT_MAX_565);
+	public static int quality = 81;
 
 	static {
-//		for (int i = 0; i < 32; i++) {
-//			DEFAULT_COLORS.add(decodeRGB565(encodeRGB565(i, i, i)));
-//			DEFAULT_COLORS.add(decodeRGB565(encodeRGB565(i, i * 2 + 1, i)));
-//		}
+		int range = 2;
+		for (int x = -range; x <= range; x++) {
+			for (int y = -range; y <= range; y++) {
+				for (int z = -range; z <= range; z++) {
+					var vector = new Vector3i(x, y, z);
+					TEST_COLOR_OFFSETS.add(vector);
+				}
+			}
+		}
+
+		TEST_COLOR_OFFSETS.sort(Comparator.comparingDouble(Vector3i::length));
+		System.out.println(TEST_COLOR_OFFSETS.size()+" test color offsets");
 	}
 
 	@Override
@@ -228,7 +241,6 @@ public class DXT1Format extends ImageFormat {
 			}
 		}
 
-
 		Set<Vector3f> testColors = new HashSet<>();
 		for (Vector3f actualPixelColor : actualPixelColors) {
 			testColors.add(decodeRGB565(encodeRGB565(actualPixelColor)));
@@ -240,20 +252,17 @@ public class DXT1Format extends ImageFormat {
 			int cg = Bits.getBits32(color565, 5, 6);
 			int cb = Bits.getBits32(color565, 0, 5);
 
-			int min = -1;
-			int max = 1;
-			var minR = Math.max(cr + min, 0);
-			var minG = Math.max(cg + min, 0);
-			var minB = Math.max(cb + min, 0);
-			var maxR = Math.min(cr + max, (1 << 5) - 1);
-			var maxG = Math.min(cg + max, (1 << 6) - 1);
-			var maxB = Math.min(cb + max, (1 << 5) - 1);
-			for (int r = minR; r <= maxR; r++) {
-				for (int g = minG; g <= maxG; g++) {
-					for (int b = minB; b <= maxB; b++) {
-						testColors.add(decodeRGB565(encodeRGB565(r, g, b)));
-					}
-				}
+//			for (int i = 0; i < TEST_COLOR_OFFSETS.size(); i++) {
+			for (int i = 0; i < quality; i++) {
+				Vector3i offset = TEST_COLOR_OFFSETS.get(i);
+				if (cr + offset.x > MAX_BITS_5)
+					continue;
+				if (cg + offset.y > MAX_BITS_6)
+					continue;
+				if (cb + offset.z > MAX_BITS_5)
+					continue;
+
+				testColors.add(decodeRGB565(encodeRGB565(cr + offset.x, cg + offset.y, cg + offset.z)));
 			}
 		}
 

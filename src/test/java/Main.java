@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.file.*;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -32,16 +33,39 @@ public final class Main {
 //		ImageIO.write(image, "PNG", new File("out.png"));
 		/////////////////////////////////////////////////////////////
 
-		BufferedImage image = ImageIO.read(new File("source-test/avast.png"));
+		BufferedImage image = ImageIO.read(new File("source-test/triangles.png"));
 		ImageFormat format = VTFImageDataFormat.DXT1.getFormat();
-
 		var dxtOut = new ByteArrayOutputStream();
 		format.write(image, Data.writeOutputStream(dxtOut));
-		var bytes = dxtOut.toByteArray();
-		System.out.println(MemoryFormatUnit.BYTE_DECIMAL.formatBytes(bytes.length));
-		var dxtIn = Data.wrapByteArray(bytes);
+		var dxtIn = Data.wrapByteArray(dxtOut.toByteArray());
 		BufferedImage out = format.read(image.getWidth(), image.getHeight(), dxtIn);
 		ImageIO.write(out, "PNG", new File("source-test/out.png"));
+
+//		File timeFile = new File("source-test/quality/time.txt");
+//		if(timeFile.exists())
+//			timeFile.delete();
+//		timeFile.createNewFile();
+//
+//		for(int q = 1; q <= 125; q++) {
+//			DXT1Format.quality = q;
+//			long start = System.currentTimeMillis();
+//			var dxtOut = new ByteArrayOutputStream();
+//			format.write(image, Data.writeOutputStream(dxtOut));
+//			long diff = System.currentTimeMillis() - start;
+//			Files.writeString(
+//					timeFile.toPath(),
+//					String.format("%d -> %,dms%n", q, diff),
+//					StandardOpenOption.APPEND
+//			);
+//
+//			var bytes = dxtOut.toByteArray();
+//			System.out.println(MemoryFormatUnit.BYTE_DECIMAL.formatBytes(bytes.length));
+//			var dxtIn = Data.wrapByteArray(bytes);
+//			BufferedImage out = format.read(image.getWidth(), image.getHeight(), dxtIn);
+//			ImageIO.write(out, "PNG", new File("source-test/quality/out-"+q+".png"));
+//			System.out.println("FINISHED QUALITY "+q);
+//		}
+
 
 		/////////////////////////////////////////////////////////////
 
