@@ -36,21 +36,25 @@ public class VTFSpecification extends Specification<VTFInstance> {
 				}
 			}
 
-			int[] version = header.version;
+			int[] versionArray = header.version;
 
-			int v = (version[0] * 10) + version[1];
+			int version = (versionArray[0] * 10) + versionArray[1];
 
-			if (v > 72) {
-				try {
-					readVersion73(data, vtfInstance);
-				} catch (ReflectiveOperationException e) {
-					e.printStackTrace();
-				}
+			if (version == 71) {
+				readVersion71(data, vtfInstance);
+				return vtfInstance;
 			} else {
-				readVersion72(data, vtfInstance);
+				header.depth = data.readShort();
+
+				if (version == 72) {
+					readVersion72(data, vtfInstance);
+				} else if (version == 73) {
+					readVersion73(data, vtfInstance);
+				}
+
+				return vtfInstance;
 			}
 
-			return vtfInstance;
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
 		}
@@ -98,6 +102,24 @@ public class VTFSpecification extends Specification<VTFInstance> {
 
 	private void writeVersion73(RandomAccessWritableData data, VTFInstance instance) {
 
+	}
+
+	private void readVersion71(RandomAccessReadableData data, VTFInstance instance) {
+		var header = instance.getHeader();
+
+		System.out.println("header = " + header);
+		System.out.println(data.position());
+		data.position(64);
+		var lowResFormat = VTFImageDataFormat.values()[header.lowResImageFormat].getFormat();
+		var highResFormat = VTFImageDataFormat.values()[header.highResImageFormat].getFormat();
+
+		var lowResRead = lowResFormat.read(
+				(int) header.lowResImageWidth & 0xFF,
+				(int) header.lowResImageHeight & 0xFF,
+				data
+		);
+
+		readMipmaps(data, instance, header, highResFormat);
 	}
 
 	private void readVersion72(RandomAccessReadableData data, VTFInstance instance) {

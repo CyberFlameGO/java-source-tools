@@ -3,6 +3,8 @@ package blue.sparse.jst.specification.materials.vtf.impl;
 import blue.sparse.binary.annotation.LengthStatic;
 import blue.sparse.binary.annotation.LittleEndian;
 
+import java.util.Arrays;
+
 @LittleEndian
 public final class VTFHeader {
 
@@ -28,13 +30,35 @@ public final class VTFHeader {
 	public int lowResImageFormat;
 	public byte lowResImageWidth;
 	public byte lowResImageHeight;
-	public short depth;
+	public transient short depth;
 
 	@LengthStatic(3)
 	public transient byte[] padding2;
 	public transient int numResources;
-//
-//	public void postBinaryRead(RandomAccessReadableData data) {
-//		VTFSpecification.INSTANCE.readHeader(data, this);
-//	}
+
+	@Override
+	public String toString() {
+		return "VTFHeader{" +
+				"signature=" + Arrays.toString(signature) +
+				", version=" + Arrays.toString(version) +
+				", headerSize=" + headerSize +
+				", width=" + width +
+				", height=" + height +
+				", flags=" + flags +
+				", frames=" + frames +
+				", firstFrame=" + firstFrame +
+				", padding0=" + Arrays.toString(padding0) +
+				", reflectivity=" + Arrays.toString(reflectivity) +
+				", padding1=" + Arrays.toString(padding1) +
+				", bumpmapScale=" + bumpmapScale +
+				", highResImageFormat=" + highResImageFormat +
+				", mipmapCount=" + mipmapCount +
+				", lowResImageFormat=" + lowResImageFormat +
+				", lowResImageWidth=" + lowResImageWidth +
+				", lowResImageHeight=" + lowResImageHeight +
+				", depth=" + depth +
+				", padding2=" + Arrays.toString(padding2) +
+				", numResources=" + numResources +
+				'}';
+	}
 }
