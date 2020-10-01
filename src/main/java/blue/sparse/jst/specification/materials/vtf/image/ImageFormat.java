@@ -83,4 +83,13 @@ public abstract class ImageFormat {
 		result = Bits.withBits32(result, 0, 8, (int) (v.z * ((1 << 8) - 1)));
 		return result;
 	}
+
+	public static int encodeRGB888(int r, int g, int b) {
+		int result = 0;
+		result = Bits.withBits32(result, 16, 8, r);
+		result = Bits.withBits32(result, 8, 8, g);
+		result = Bits.withBits32(result, 0, 8, b);
+		return result;
+	}
+
 }

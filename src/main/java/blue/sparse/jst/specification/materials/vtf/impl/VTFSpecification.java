@@ -107,6 +107,11 @@ public class VTFSpecification extends Specification<VTFInstance> {
 		var lowResFormat = VTFImageDataFormat.values()[header.lowResImageFormat].getFormat();
 		var highResFormat = VTFImageDataFormat.values()[header.highResImageFormat].getFormat();
 
+		if(highResFormat == null) {
+			System.out.println("Could not find format " + VTFImageDataFormat.values()[header.highResImageFormat]);
+			return;
+		}
+
 		var lowResRead = lowResFormat.read(
 				(int) header.lowResImageWidth & 0xFF,
 				(int) header.lowResImageHeight & 0xFF,
@@ -126,6 +131,11 @@ public class VTFSpecification extends Specification<VTFInstance> {
 		data.position(80);
 		var highResFormat = VTFImageDataFormat.values()[header.highResImageFormat].getFormat();
 		var lowResFormat = VTFImageDataFormat.values()[header.lowResImageFormat].getFormat();
+
+		if(highResFormat == null) {
+			System.out.println("Could not find format " + VTFImageDataFormat.values()[header.highResImageFormat]);
+			return;
+		}
 
 		for (int i = 0; i < header.numResources; i++) {
 			var startPosition = data.position();
@@ -163,6 +173,10 @@ public class VTFSpecification extends Specification<VTFInstance> {
 		for (int mipmapIndex = mipmapCount - 1; mipmapIndex >= 0; mipmapIndex--) {
 			var width = (int) header.width >> mipmapIndex;
 			var height = (int) header.height >> mipmapIndex;
+			if(width <= 0 || height <= 0) {
+				// TODO: ???
+				continue;
+			}
 			VTFMipmap mipmap = new VTFMipmap(instance, mipmapIndex, width, height, new ArrayList<>());
 			instance.getMipmaps().add(0, mipmap);
 
