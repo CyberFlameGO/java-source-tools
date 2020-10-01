@@ -8,7 +8,6 @@ import blue.sparse.jst.specification.materials.vtf.VTFTextureFlags;
 import blue.sparse.jst.specification.materials.vtf.image.ImageFormat;
 import xyz.eutaxy.util.data.RandomAccessReadableData;
 import xyz.eutaxy.util.data.RandomAccessWritableData;
-import xyz.eutaxy.util.data.WritableData;
 
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -40,20 +39,19 @@ public class VTFSpecification extends Specification<VTFInstance> {
 
 			int version = (versionArray[0] * 10) + versionArray[1];
 
-			if (version == 71) {
-				readVersion71(data, vtfInstance);
-				return vtfInstance;
+			if (version == 70 || version == 71) {
+				readVersion7071(data, vtfInstance);
 			} else {
 				header.depth = data.readShort();
 
 				if (version == 72) {
 					readVersion72(data, vtfInstance);
-				} else if (version == 73) {
-					readVersion73(data, vtfInstance);
+				} else if (version == 73 || version == 74 || version == 75) {
+					readVersion737475(data, vtfInstance);
 				}
-
-				return vtfInstance;
 			}
+
+			return vtfInstance;
 
 		} catch (ReflectiveOperationException e) {
 			e.printStackTrace();
@@ -104,11 +102,9 @@ public class VTFSpecification extends Specification<VTFInstance> {
 
 	}
 
-	private void readVersion71(RandomAccessReadableData data, VTFInstance instance) {
+	private void readVersion7071(RandomAccessReadableData data, VTFInstance instance) {
 		var header = instance.getHeader();
 
-		System.out.println("header = " + header);
-		System.out.println(data.position());
 		data.position(64);
 		var lowResFormat = VTFImageDataFormat.values()[header.lowResImageFormat].getFormat();
 		var highResFormat = VTFImageDataFormat.values()[header.highResImageFormat].getFormat();
@@ -129,7 +125,7 @@ public class VTFSpecification extends Specification<VTFInstance> {
 		var lowResFormat = VTFImageDataFormat.values()[header.lowResImageFormat].getFormat();
 		var highResFormat = VTFImageDataFormat.values()[header.highResImageFormat].getFormat();
 
-		if(highResFormat == null) {
+		if (highResFormat == null) {
 			System.out.println("Could not find format " + VTFImageDataFormat.values()[header.highResImageFormat]);
 			return;
 		}
@@ -143,7 +139,7 @@ public class VTFSpecification extends Specification<VTFInstance> {
 		readMipmaps(data, instance, header, highResFormat);
 	}
 
-	private void readVersion73(RandomAccessReadableData data, VTFInstance instance) throws ReflectiveOperationException {
+	private void readVersion737475(RandomAccessReadableData data, VTFInstance instance) throws ReflectiveOperationException {
 		var header = instance.getHeader();
 
 		header.padding2 = new byte[3];
@@ -154,7 +150,7 @@ public class VTFSpecification extends Specification<VTFInstance> {
 		var highResFormat = VTFImageDataFormat.values()[header.highResImageFormat].getFormat();
 		var lowResFormat = VTFImageDataFormat.values()[header.lowResImageFormat].getFormat();
 
-		if(highResFormat == null) {
+		if (highResFormat == null) {
 			System.out.println("Could not find format " + VTFImageDataFormat.values()[header.highResImageFormat]);
 			return;
 		}
@@ -195,7 +191,7 @@ public class VTFSpecification extends Specification<VTFInstance> {
 		for (int mipmapIndex = mipmapCount - 1; mipmapIndex >= 0; mipmapIndex--) {
 			var width = (int) header.width >> mipmapIndex;
 			var height = (int) header.height >> mipmapIndex;
-			if(width <= 0 || height <= 0) {
+			if (width <= 0 || height <= 0) {
 				// TODO: ???
 				continue;
 			}

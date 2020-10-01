@@ -53,7 +53,6 @@ public class DXT1Format extends ImageFormat {
 
 		for (int blockY = 0; blockY < heightInBlocks; blockY++) {
 			for (int blockX = 0; blockX < widthInBlocks; blockX++) {
-				System.out.println("blockX = " + blockX + ", blockY = " + blockY);
 
 				var color0int = (int) data.readShort() & 0xFFFF;
 				var color1int = (int) data.readShort() & 0xFFFF;

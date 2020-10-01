@@ -16,14 +16,13 @@ public class VTFTest {
 
 	public static void main(String[] args) throws IOException {
 
+		File file = new File("source-vtf-test/7-0.vtf");
+		RandomAccessReadableData data = Data.readFile(file);
 
-//		File file = new File("source-vtf-test/7-1.vtf");
-//		RandomAccessReadableData data = Data.readFile(file);
-//
-//		VTFInstance instance = VTFSpecification.INSTANCE.read(data);
-//		BufferedImage image = instance.getImage(0, 0);
-//
-//		ImageIO.write(image, "PNG", new File("out.png"));
+		VTFInstance instance = VTFSpecification.INSTANCE.read(data);
+		BufferedImage image = instance.getImage(0, 0);
+
+		ImageIO.write(image, "PNG", new File("out.png"));
 
 	}
 

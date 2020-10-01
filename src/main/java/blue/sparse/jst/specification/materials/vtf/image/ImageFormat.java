@@ -27,7 +27,9 @@ public abstract class ImageFormat {
 
 	//Assuming that the buffer position is exactly where the image format data starts.
 	public abstract BufferedImage read(int width, int height, RandomAccessReadableData data);
-	public void write(BufferedImage image, WritableData data) {}
+
+	public void write(BufferedImage image, WritableData data) {
+	}
 
 	public static short encodeRGB565Closest(Vector3f v) {
 		//rrr = Total block distance:  93960.73
@@ -49,6 +51,15 @@ public abstract class ImageFormat {
 		var red = Bits.getBits32(i, 11, 5) / ((float) (1 << 5) - 1);
 		var green = Bits.getBits32(i, 5, 6) / ((float) (1 << 6) - 1);
 		var blue = Bits.getBits32(i, 0, 5) / ((float) (1 << 5) - 1);
+		return new Vector3f(red, green, blue);
+	}
+
+	public static Vector3f decodeBGR565(int i) {
+//		i = i & 0xFFFF;
+//		return new Vector3f(red565Decoded[i], green565Decoded[i], blue565Decoded[i]);
+		var blue = Bits.getBits32(i, 11, 5) / ((float) (1 << 5) - 1);
+		var green = Bits.getBits32(i, 5, 6) / ((float) (1 << 6) - 1);
+		var red = Bits.getBits32(i, 0, 5) / ((float) (1 << 5) - 1);
 		return new Vector3f(red, green, blue);
 	}
 
@@ -86,6 +97,15 @@ public abstract class ImageFormat {
 
 	public static int encodeRGB888(int r, int g, int b) {
 		int result = 0;
+		result = Bits.withBits32(result, 16, 8, r);
+		result = Bits.withBits32(result, 8, 8, g);
+		result = Bits.withBits32(result, 0, 8, b);
+		return result;
+	}
+
+	public static int encodeARGB8888(int a, int r, int g, int b) {
+		int result = 0;
+		result = Bits.withBits32(result, 24, 8, a);
 		result = Bits.withBits32(result, 16, 8, r);
 		result = Bits.withBits32(result, 8, 8, g);
 		result = Bits.withBits32(result, 0, 8, b);
