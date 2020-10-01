@@ -33,7 +33,7 @@ public final class Main {
 //		ImageIO.write(image, "PNG", new File("out.png"));
 		/////////////////////////////////////////////////////////////
 
-		BufferedImage image = ImageIO.read(new File("source-test/triangles.png"));
+		BufferedImage image = ImageIO.read(new File("source-test/gradient.png"));
 		ImageFormat format = VTFImageDataFormat.DXT1.getFormat();
 		var dxtOut = new ByteArrayOutputStream();
 		format.write(image, Data.writeOutputStream(dxtOut));

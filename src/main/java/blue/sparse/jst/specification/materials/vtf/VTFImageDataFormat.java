@@ -1,15 +1,12 @@
 package blue.sparse.jst.specification.materials.vtf;
 
-import blue.sparse.jst.specification.materials.vtf.image.DXT1Format;
-import blue.sparse.jst.specification.materials.vtf.image.DXT3Format;
-import blue.sparse.jst.specification.materials.vtf.image.DXT5Format;
-import blue.sparse.jst.specification.materials.vtf.image.ImageFormat;
+import blue.sparse.jst.specification.materials.vtf.image.*;
 
 public enum VTFImageDataFormat {
 	RGBA8888,
 	ABGR8888,
 	RGB888,
-	BGR888,
+	BGR888(new BGR888Format()),
 	RGB565,
 	I8,
 	IA88,

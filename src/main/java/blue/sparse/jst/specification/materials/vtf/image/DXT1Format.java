@@ -16,10 +16,10 @@ public class DXT1Format extends ImageFormat {
 	private static final int MAX_BITS_6 = (1 << 6) - 1;
 	private static final Vector3i INT_MAX_565 = new Vector3i(MAX_BITS_5, MAX_BITS_6, MAX_BITS_5);
 	private static final Vector3f FLOAT_MAX_565 = new Vector3f(INT_MAX_565);
-	public static int quality = 81;
+	public static int quality = 343;
 
 	static {
-		int range = 2;
+		int range = 3;
 		for (int x = -range; x <= range; x++) {
 			for (int y = -range; y <= range; y++) {
 				for (int z = -range; z <= range; z++) {
@@ -116,8 +116,12 @@ public class DXT1Format extends ImageFormat {
 				blocks.add(block);
 
 				pool.submit(() -> {
-					findBestColors(block);
-					populateBlockCodes(block);
+					try {
+						findBestColors(block);
+						populateBlockCodes(block);
+					} catch(Throwable t) {
+						t.printStackTrace();
+					}
 					latch.countDown();
 				});
 			}
@@ -264,7 +268,7 @@ public class DXT1Format extends ImageFormat {
 				if (cb + offset.z > MAX_BITS_5)
 					continue;
 
-				testColors.add(decodeRGB565(encodeRGB565(cr + offset.x, cg + offset.y, cg + offset.z)));
+				testColors.add(decodeRGB565(encodeRGB565(cr + offset.x, cg + offset.y, cb + offset.z)));
 			}
 		}
 
@@ -292,26 +296,6 @@ public class DXT1Format extends ImageFormat {
 		block.distance = bestDistance;
 		block.color0 = encodeRGB565(resultColor0);
 		block.color1 = encodeRGB565(resultColor1);
-	}
-
-	private long sumDistances(short[] a, short[] b) {
-		return 0;
-	}
-
-	private short distance(short a, short b) {
-		int ra = a >> 11 & (1 << 5) - 1;
-		int ga = a >> 5 & (1 << 6) - 1;
-		int ba = a & (1 << 5) - 1;
-
-		int rb = a >> 11 & (1 << 5) - 1;
-		int gb = a >> 5 & (1 << 6) - 1;
-		int bb = a & (1 << 5) - 1;
-
-		int dr = ra - rb;
-		int dg = ga - gb;
-		int db = ba - bb;
-
-		return (short) (dr * dr + dg * dg + db * db);
 	}
 
 	private float sumDistances(List<Vector3f> a, List<Vector3f> b) {
