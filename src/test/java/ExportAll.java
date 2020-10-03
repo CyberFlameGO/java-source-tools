@@ -4,6 +4,7 @@ import xyz.eutaxy.util.data.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -15,6 +16,7 @@ public class ExportAll {
 	public static void main(String[] args) {
 		exportAll(new File("D:\\Steam Library\\steamapps\\common\\Source Unpack 2.4\\portal\\materials"), new File("materials"));
 		exportAll(new File("D:\\Steam Library\\steamapps\\common\\Source Unpack 2.4\\hl2\\materials"), new File("materials"));
+		exportAll(new File("C:\\Users\\kchri\\Desktop\\csgo-materials"), new File("M:\\source-resources\\csgo-materials"));
 	}
 
 	public static void exportAll(File inputFolder, File outputFolder) {
@@ -23,8 +25,9 @@ public class ExportAll {
 		var files = inputFolder.listFiles();
 		for (File file : files) {
 			var name = file.getName();
+			File output = new File(outputFolder, name);
 			if (file.isDirectory()) {
-				exportAll(file, new File(outputFolder, name));
+				exportAll(file, output);
 			} else if (name.endsWith(".vtf")) {
 				ForkJoinTask<?> submit = ForkJoinPool.commonPool().submit(() -> {
 					try {
@@ -35,6 +38,15 @@ public class ExportAll {
 				});
 
 				list.add(submit);
+			} else if (name.endsWith(".vmt")) {
+				try {
+					if(!output.exists()) {
+						output.getParentFile().mkdirs();
+						Files.copy(file.toPath(), output.toPath());
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 

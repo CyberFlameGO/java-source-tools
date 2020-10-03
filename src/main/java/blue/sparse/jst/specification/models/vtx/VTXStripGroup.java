@@ -12,4 +12,6 @@ public class VTXStripGroup {
 	@ArrayPointer
 	public VTXStrip[] strips;
 	public byte flags;
+
+
 }

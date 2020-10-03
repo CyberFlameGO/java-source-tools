@@ -1,0 +1,80 @@
+struct studiohdr_t {
+  int id;
+  int version;
+  long checksum;  // this has to be the same in the phy and vtx files to load!
+  char name[64];
+  int length;
+  Vector eyeposition;  // ideal eye position
+  Vector illumposition;  // illumination center
+  Vector hull_min;  // ideal movement hull size
+  Vector hull_max;
+  Vector view_bbmin;  // clipping bounding box
+  Vector view_bbmax;
+  int flags;
+  int numbones;  // bones
+  int boneindex;
+  int numbonecontrollers;  // bone controllers
+  int bonecontrollerindex;
+  int numhitboxsets;
+  int hitboxsetindex;
+  int numlocalanim;    // animations/poses
+  int localanimindex;  // animation descriptions
+  int numlocalseq;  // sequences
+  int localseqindex;
+  mutable int activitylistversion;  // initialization flag - have the sequences
+  mutable int eventsindexed;
+  int numtextures;
+  int textureindex;
+  int numcdtextures;
+  int cdtextureindex;
+  int numskinref;
+  int numskinfamilies;
+  int skinindex;
+  int numbodyparts;
+  int bodypartindex;
+  int numlocalattachments;
+  int localattachmentindex;
+  int numlocalnodes;
+  int localnodeindex;
+  int localnodenameindex;
+  int numflexdesc;
+  int flexdescindex;
+  int numflexcontrollers;
+  int flexcontrollerindex;
+  int numflexrules;
+  int flexruleindex;
+  int numikchains;
+  int ikchainindex;
+  int nummouths;
+  int mouthindex;
+  int numlocalposeparameters;
+  int localposeparamindex;
+  int surfacepropindex;
+  int keyvalueindex;
+  int keyvaluesize;
+  int numlocalikautoplaylocks;
+  int localikautoplaylockindex;
+  int GetNumIKAutoplayLocks(void) const;
+  f32 mass;
+  int contents;
+  int numincludemodels;
+  int includemodelindex;
+  mutable void *virtualModel;
+  int szanimblocknameindex;
+  int numanimblocks;
+  int animblockindex;
+  mutable void *animblockModel;
+  int bonetablebynameindex;
+  void *pVertexBase;
+  void *pIndexBase;
+  u8 constdirectionallightdot;
+  u8 rootLOD;
+  u8 numAllowedRootLODs;
+  u8 unused[1];
+  int unused4;  // zero out if version < 47
+  int numflexcontrollerui;
+  int flexcontrolleruiindex;
+  int unused3[2];
+  int studiohdr2index;
+  int unused2[1];
+

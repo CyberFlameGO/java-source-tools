@@ -4,6 +4,7 @@ import blue.sparse.binary.annotation.LengthStatic;
 
 public final class MDLFlexControllerUI {
 
+	public int sznameindex;
 	public int szindex0;
 
 	// These are used like a union to save space
@@ -20,7 +21,6 @@ public final class MDLFlexControllerUI {
 
 	@LengthStatic(2)
 	public byte[] unused;
-	int sznameindex;
 
 	/*
 	inline char * const pszName( void ) const { return ((char *)this) + sznameindex; }

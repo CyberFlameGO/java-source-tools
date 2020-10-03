@@ -41,7 +41,7 @@ public final class MDLHeader {
 	public MDLTextureData[] textureData;
 
 	@ArrayPointer
-	public int[] textureDirectoryPointers;
+	public MDLTextureDirectory[] textureDirectoryPointers;
 
 	//TODO
 	public int skinreferenceCount;
@@ -57,10 +57,6 @@ public final class MDLHeader {
 
 	public int localNodeCount;
 	public int localNodeIndex;
-	@LengthPointerField("localNodeCount")
-	@ValuePointerField("localNodeIndex")
-	public byte[] localNodes;
-	//TODO: name
 	public int localNodeNameIndex;
 
 	@ArrayPointer
@@ -82,6 +78,7 @@ public final class MDLHeader {
 	public MDLPoseParameterDescription[] poseParameterDescriptions;
 
 	@ValuePointer
+	@NullTerminated
 	public String surfaceProp;
 
 	//TODO
@@ -108,7 +105,6 @@ public final class MDLHeader {
 	public int animBlockModel;
 	public int boneTableNameIndex;
 
-
 	public int vertexBase;
 	public int offsetBase;
 	public byte directionalDotProduct;
@@ -120,9 +116,13 @@ public final class MDLHeader {
 	@ArrayPointer
 	public MDLFlexControllerUI[] flexControllerUIS;
 
+	@LengthStatic(2)
+	public int[] unused3;
+
 	public int studiohdr2index;
 	public int unused2;
-	@LengthStatic(1)
-	@ValuePointerField("studiohdr2index")
-	public MDLSecondaryHeader[] secondaryHeader;
+
+//	@LengthStatic(1)
+//	@ValuePointerField("studiohdr2index")
+//	public MDLSecondaryHeader[] secondaryHeader;
 }
