@@ -11,9 +11,9 @@ import java.util.Set;
 
 public class VTFInstance extends Instance<VTFInstance> {
 
-	private VTFHeader header;
-	private List<VTFMipmap> mipmaps = new ArrayList<>();
-	private Set<VTFTextureFlags> flags = EnumSet.noneOf(VTFTextureFlags.class);
+	private final VTFHeader header;
+	private final List<VTFMipmap> mipmaps = new ArrayList<>();
+	private final Set<VTFTextureFlags> flags = EnumSet.noneOf(VTFTextureFlags.class);
 
 	public VTFInstance(VTFHeader header) {
 		super(VTFSpecification.INSTANCE);
