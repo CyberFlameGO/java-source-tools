@@ -27,7 +27,7 @@ public enum LumpType {
 	LEAFFACES,
 	LEAFBRUSHES,
 	BRUSHES(LumpBrush.class),
-	BRUSHSIDES,
+	BRUSHSIDES(LumpBrushSide.class),
 	AREAS,
 	AREAPORTALS,
 	PORTALS,

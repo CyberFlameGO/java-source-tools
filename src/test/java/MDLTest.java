@@ -34,15 +34,34 @@ public final class MDLTest {
 		System.out.println("vtxHeader.numLODs = " + vtxHeader.numLODs);
 		System.out.println("vtxHeader.version = " + vtxHeader.version);
 
-		VVDVertexData[] vertices = vvdHeader.vertices;
+		for (VTXBodyPart bodyPart : vtxHeader.bodyParts) {
+			for (VTXModel model : bodyPart.models) {
+				for (VTXStripGroup stripGroup : model.modelLODs[0].meshes[0].stripGroups) {
+					short[] indicesPool = stripGroup.indices;
+					VTXVertex[] verticesPool = stripGroup.vertices;
 
+					for (VTXStrip strip : stripGroup.strips) {
 
-		for (MDLTextureDirectory dir : mdlHeader.textureDirectoryPointers) {
-			System.out.println("dir.path = " + dir.path);
-		}
+						for (int i = 0; i < strip.numIndices; i++) {
+							short index = indicesPool[i + strip.indexOffset];
 
-		for (MDLTextureData texture : mdlHeader.textureData) {
-			System.out.println(texture);
+							VTXVertex vtxVertex = verticesPool[index];
+							short id = vtxVertex.origMeshVertID;
+							VVDVertexData vertex = vvdHeader.vertices[id];
+							System.out.println("vertex = " + vertex);
+							if (i % 3 == 0) {
+								System.out.println();
+							}
+						}
+
+//						for (int i = 0; i < strip.numVerts; i++) {
+//							VTXVertex vtxVertex = verticesPool[i + strip.vertOffset];
+//							short id = vtxVertex.origMeshVertID;
+//							VVDVertexData vertex = vvdHeader.vertices[id];
+//						}
+					}
+				}
+			}
 		}
 	}
 }

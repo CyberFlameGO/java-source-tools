@@ -8,4 +8,14 @@ public final class VVDVertexData {
 	public Vector3f vecPosition;
 	public Vector3f vecNormal;
 	public Vector2f vecTexCoord;
+
+	@Override
+	public String toString() {
+		return "VVDVertexData{" +
+				"boneWeight=" + boneWeight +
+				", vecPosition=" + vecPosition +
+				", vecNormal=" + vecNormal +
+				", vecTexCoord=" + vecTexCoord +
+				'}';
+	}
 }
